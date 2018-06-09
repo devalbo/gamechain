@@ -1,11 +1,13 @@
 # gamechain
 
-This project is to test my hypothesis that the Bitcoin Cash (BCH) blockchain and mempool with zero-confirmation transaction times can make a good multi-player game lobby system.
+This project is to test my hypothesis that the Bitcoin Cash (BCH) blockchain and mempool with zero-confirmation transaction times can make a good, open, non-proprietary game lobby system for multi-player game participation.
 
-You could signal your intent to start or join a game (or one of its variants) with a public key-based identity along with enough information to let participants connect/watch. Challengers could accept, and game moves/summaries/outcomes could published on the blockchain, too.
+You could signal your intent to start or join a game (or one of its variants) with a public key-based player identity along with enough information to let participants connect/watch. Challengers could accept, and game moves/summaries/outcomes could published on the blockchain, too.
 
+### What is a Game?
 If you think of a game as a set of initial conditions and a series of validated transformations at the direction of participants (with some mechanism for randomness when appropriate), the game itself and how the players interact with it become two different applications. Game development consists of two components: client/user-interface and rules/validation engine. As long as you have a game and a complete specification of rules/protocols, gameplay can occur on-chain or off-chain (but still have moves be signed/authenticated by participants). Additionally, which clients people use become irrelevant to the game/blockchain itself as long as they validate according to the same sets of rules. Finally, games can resolve themselves the way they would off the blockchain - using observable behavior and conventions.
 
+### There's a lot to do yet...
 There are a lot of details to work out and conventions/protocols to support all types of games would be very important, but I am optimistic. One thing to note is that games that use randomness should be possible, but I'm starting as simply as possible. Many games have more than two players, which should also be possible, but I will start with only two players to keep communication simple while testing this hypothesis.
 
 
