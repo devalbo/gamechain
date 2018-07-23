@@ -50,34 +50,18 @@ Gamechain messages are preceded by a version byte and a message code byte. Durin
 
 
 #### Message/Action: Setting the Table
- The transaction and following Continuation messages contain enough information for a game client to display the game and enable play options as appropriate. The following information is in the OP_RETURN:
+ The transaction (which may consist of multiple OP_RETURN scripts) contain enough information for a game client to display the game and enable play options as appropriate. The following information is in the OP_RETURN:
  
 | Byte Count | Name    | Format/Values | Description |
 |:----------:| --------| ----------- | ---- | 
 | 1          | Protocol version | Version byte | See protocol description. |
-| 1          | **STC** | 0x02 | _Setting the Table_ message code. See above. |
-| 32         | Signal Tx ID | <transaction_id> | Transaction ID of the message signaling the game will be played. (ACC message if using GameChain Lobby protocol for set up) |
-| 1          | Message data size | Size byte| Number of bytes to read for message data  |
-| 1          | Signed Tx ID data size | Size byte | Number of bytes to read for signed transaction ID data |
+| 1          | **STT** | 0x01 | _Setting the Table_ message code. See above. |
 | 33         | Initiator's public key | <public_key> | Key used by the initiator to sign messages. |
-| 1          | STC message follows | Boolean byte | While this is non-zero, append STC messages to this until a message where this byte is zero. | 
-| 32         | STC Tx ID | <transaction_id> | Transaction ID of the continuing STC message. Concatenate game start continuation messages in order until STC message follows is not set to have complete game start message. |
-| <message_data_size> | Game start conditions | Complete information about how game will start and be played | Depends on game. Information that should be included regardless of game is: player order, player public keys, player addresses | 
-| <signed_tx_id_size> | Signed Tx ID | Byte array used to authenticate message from transmitters | Signed version of the transaction ID signaling the game will be played. Prevents spoofing of this message.| 
-
-#### Message/Action: Setting the Table - Continuation
- Continuation messages contain enough information for a game client to display the game and enable play options as appropriate. Message data should be concatenated to previous messages until there are no more messages. The following information is in the OP_RETURN:
- 
-| Byte Count | Name    | Format/Values | Description |
-|:----------:| --------| ----------- | ---- | 
-| 1          | Protocol version | Version byte | See protocol description. |
-| 1          | **STC** | 0x02 | _Setting the Table - Continuation_ message code. See above. |
-| 1          | Message data size | Size byte| Number of bytes to read for message data  |
+| 32         | Initiator's game ID | <game_id_str> | String created by the Initiator to uniquely identify the game. Pad to 32 bytes as necessary. This might be the transaction ID containing the initiator's original game ID using GCL/LFG.|
 | 1          | Signed Tx ID data size | Size byte | Number of bytes to read for signed transaction ID data |
-| 1          | STC message follows | Boolean byte | While this is non-zero, append STC messages to this until a message where this byte is zero. || 32         | Following STC message Tx ID | <transaction_id> | Transaction ID of the preceding STT or STC message. |
-| 32         | STC Tx ID | <transaction_id> | Transaction ID of the continuing STC message. Concatenate game start continuation messages in order until STC message follows is not set to have complete game start message. |
+| 2          | Message data size | Size bytes | Number of bytes to read for message data. Includes subsequent OP_RETURN messages in the same transaction excluding the OP_RETURN byte. |
+| <signed_tx_id_size> | Signed Tx ID | Byte array used to authenticate message from transmitters | Signed version of the transaction ID signaling the game will be played. Prevents spoofing of this message.| 
 | <message_data_size> | Game start conditions | Complete information about how game will start and be played | Depends on game. Information that should be included regardless of game is: player order, player public keys, player addresses | 
-| <signed_tx_id_size> | Signed Tx ID | Byte array used to authenticate message from transmitters | Signed version of the previous STT or STC transaction ID. Prevents spoofing of this message. Uses initiator key from previous **STT** messages.| 
 
 
  #### Message/Action: Taking My Turn
@@ -87,11 +71,11 @@ Gamechain messages are preceded by a version byte and a message code byte. Durin
 |:----------:| --------| ----------- | ---- | 
 | 1          | Protocol version | Version byte | See protocol description. |
 | 1          | **TMT** | 0x03 | _Taking My Turn_ message code. See above. |
-| 32         | Prevous Tx ID | <transaction_id> | Transaction ID of the preceding TMT message (or STT/STC message if it's the first turn). |
-| 1          | Message data size | Size byte| Number of bytes to read for message data  |
-| 1          | Signed Tx ID data size | Size byte | Number of bytes to read for signed transaction ID data |
+| 32         | Previous Tx ID | <transaction_id> | Transaction ID of the preceding TMT message (or STT/STC message if it's the first turn). |
+| 2          | Message data size | Size byte| Number of bytes to read for message data  |
+| 1          | Signed Previous Tx ID data size | Size byte | Number of bytes to read for signed transaction ID data |
 | <message_data_size> | Game turn operations | Complete information about the player's turn| Depends on game. | 
-| <signed_tx_id> | Signed Tx ID | Byte array used to authenticate message from transmitters | Signed version of the previous TMT/STT/STC transaction ID. Prevents spoofing of this message.| 
+| <signed_tx_id> | Signed Previous Tx ID | Byte array used to authenticate message from transmitters | Signed version of the previous TMT/STT/STC transaction ID. Prevents spoofing of this message.| 
 
 
 #### Message/Action: I Win
@@ -101,11 +85,11 @@ I Win messages contain enough information for a game client to convince other pl
 |:----------:| --------| ----------- | ---- | 
 | 1          | Protocol version | Version byte | See protocol description. |
 | 1          | **WIN** | 0x04 | _I Win_ message code. See above. |
-| 32         | Prevous Tx ID | <transaction_id> | Transaction ID of the preceding TMT message. |
-| 1          | Message data size | Size byte| Number of bytes to read for message data  |
-| 1          | Signed Tx ID data size | Size byte | Number of bytes to read for signed transaction ID data |
+| 32         | Previous Tx ID | <transaction_id> | Transaction ID of the preceding TMT message. |
+| 2          | Message data size | Size byte| Number of bytes to read for message data  |
+| 1          | Signed Previous Tx ID data size | Size byte | Number of bytes to read for signed transaction ID data |
 | <message_data_size> | Winning move | Complete information about the player's turn that results in a win| Depends on game. | 
-| <signed_tx_id> | Signed Tx ID | Byte array used to authenticate message from transmitters | Signed version of the previous TMT transaction ID. Prevents spoofing of this message.| 
+| <signed_tx_id> | Signed Previous Tx ID | Byte array used to authenticate message from transmitters | Signed version of the previous TMT transaction ID. Prevents spoofing of this message.| 
 
 
 #### Message/Action: I Lose
@@ -115,11 +99,11 @@ I Lose messages can contain last game-turn information using a game-specific pro
 |:----------:| --------| ----------- | ---- | 
 | 1          | Protocol version | Version byte | See protocol description. |
 | 1          | **LUZ** | 0x05 | _I Lose_ message code. See above. |
-| 32         | Prevous Tx ID | <transaction_id> | Transaction ID of the preceding TMT message. |
+| 32         | Previous Tx ID | <transaction_id> | Transaction ID of the preceding TMT message. |
 | 1          | Message data size | Size byte| Number of bytes to read for message data  |
-| 1          | Signed Tx ID data size | Size byte | Number of bytes to read for signed transaction ID data |
+| 1          | Signed Previous Tx ID data size | Size byte | Number of bytes to read for signed transaction ID data |
 | <message_data_size> | Losing move | Optional. Complete information about the player's turn that results in a loss | Depends on game. | 
-| <signed_tx_id> | Signed Tx ID | Byte array used to authenticate message from transmitters | Signed version of the previous TMT transaction ID. Prevents spoofing of this message.| 
+| <signed_tx_id> | Signed Previous Tx ID | Byte array used to authenticate message from transmitters | Signed version of the previous TMT transaction ID. Prevents spoofing of this message.| 
 
 
 #### Message/Action: We Draw
@@ -129,11 +113,11 @@ We Draw messages contain last game-turn information using a game-specific protoc
 |:----------:| --------| ----------- | ---- | 
 | 1          | Protocol version | Version byte | See protocol description. |
 | 1          | **DRW** | 0x06 | _We Draw_ message code. See above. |
-| 32         | Prevous Tx ID | <transaction_id> | Transaction ID of the preceding TMT message. |
-| 1          | Message data size | Size byte| Number of bytes to read for message data  |
-| 1          | Signed Tx ID data size | Size byte | Number of bytes to read for signed transaction ID data |
+| 32         | Previous Tx ID | <transaction_id> | Transaction ID of the preceding TMT message. |
+| 2          | Message data size | Size byte| Number of bytes to read for message data  |
+| 1          | Signed Previous Tx ID data size | Size byte | Number of bytes to read for signed transaction ID data |
 | <message_data_size> | Ending move | Complete information about the player's turn that results in a draw | Depends on game. | 
-| <signed_tx_id> | Signed Tx ID | Byte array used to authenticate message from transmitters | Signed version of the previous TMT transaction ID. Prevents spoofing of this message.| 
+| <signed_tx_id> | Signed Previous Tx ID | Byte array used to authenticate message from transmitters | Signed version of the previous TMT transaction ID. Prevents spoofing of this message.| 
 
 
 #### Message/Action: I Concede
