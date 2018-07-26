@@ -18,5 +18,5 @@ setuptools.setup(
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
         "Operating System :: OS Independent",
     ),
-    install_requires=[]
+    install_requires=["gamechain_lobby"]
 )
